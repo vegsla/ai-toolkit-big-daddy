@@ -53,8 +53,6 @@ RUN npm install \
     && npm run update_db
 
 WORKDIR /
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
 
 EXPOSE 22 8675
 
