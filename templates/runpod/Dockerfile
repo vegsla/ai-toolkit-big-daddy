@@ -1,5 +1,14 @@
-RUN npm install \
-    && npx tsc -p tsconfig.worker.json \
+FROM node:22
+
+WORKDIR /app/ai-toolkit/ui
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+RUN npx tsc -p tsconfig.worker.json \
     && npm run build \
     \
     # ✅ Fix nested cron folder
@@ -10,7 +19,7 @@ RUN npm install \
         rm -rf dist/cron/cron ; \
     fi \
     \
-    # ✅ FIX WRONG SRC STRUCTURE (THIS IS THE REAL BUG)
+    # ✅ FIX WRONG SRC STRUCTURE
     && if [ -d dist/cron/src ]; then \
         echo "Fixing src path for runtime imports..." && \
         mkdir -p dist && \
@@ -22,3 +31,8 @@ RUN npm install \
     && echo "=============================" \
     \
     && npm run update_db
+
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"]
