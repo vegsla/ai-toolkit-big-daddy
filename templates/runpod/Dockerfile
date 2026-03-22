@@ -62,6 +62,12 @@ RUN npm install --legacy-peer-deps \
     && npm run build \
     && npm run update_db
 
+# TEMP FIX: flatten worker path
+RUN if [ -f /app/ai-toolkit/ui/dist/cron/cron/worker.js ]; then \
+    mkdir -p /app/ai-toolkit/ui/dist/cron && \
+    cp /app/ai-toolkit/ui/dist/cron/cron/worker.js /app/ai-toolkit/ui/dist/cron/worker.js ; \
+fi
+
 # Back to root
 WORKDIR /
 
