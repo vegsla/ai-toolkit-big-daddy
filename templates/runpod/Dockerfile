@@ -44,20 +44,23 @@ RUN git clone --depth 1 --branch "${AITK_REF}" "${AITK_REPO}" /app/ai-toolkit
 
 WORKDIR /app/ai-toolkit
 
-# ✅ FIX: install torch first, then install requirements WITHOUT dependency solving
+# Install torch FIRST (avoids dependency chaos)
 RUN python -m pip install --no-cache-dir \
     torch==2.7.0 \
     torchvision==0.22.0 \
     torchaudio==2.7.0 \
     --index-url https://download.pytorch.org/whl/cu126
 
+# Install remaining dependencies WITHOUT re-solving everything
 RUN python -m pip install --no-cache-dir --no-deps -r requirements.txt
 
 WORKDIR /app/ai-toolkit/ui
 
 RUN npm install \
     && npm run build \
-    && npm run update_db
+    && npm run update_db \
+    && echo "---- DIST CONTENTS ----" \
+    && ls -R dist || true
 
 WORKDIR /
 
