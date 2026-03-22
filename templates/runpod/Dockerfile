@@ -59,4 +59,4 @@ WORKDIR /
 
 EXPOSE 22 8675
 
-CMD ["/start.sh"]
+CMD ["bash"]
