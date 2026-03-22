@@ -2,16 +2,23 @@ FROM node:22
 
 WORKDIR /app/ai-toolkit/ui
 
-COPY package*.json ./
+# Copy UI dependencies from the correct location
+COPY ui/package*.json ./
 
 RUN npm install
 
-COPY . .
+# Copy the rest of the UI
+COPY ui/ ./
 
+# Bring in start script (this is what broke before)
+COPY start.sh /start.sh
+
+RUN chmod +x /start.sh
+
+# Build
 RUN npx tsc -p tsconfig.worker.json \
     && npm run build \
     \
-    # ✅ Fix nested cron folder
     && if [ -f dist/cron/cron/worker.js ]; then \
         echo "Fixing nested cron folder..." && \
         mkdir -p dist/cron && \
@@ -19,9 +26,8 @@ RUN npx tsc -p tsconfig.worker.json \
         rm -rf dist/cron/cron ; \
     fi \
     \
-    # ✅ FIX WRONG SRC STRUCTURE
     && if [ -d dist/cron/src ]; then \
-        echo "Fixing src path for runtime imports..." && \
+        echo "Fixing src path..." && \
         mkdir -p dist && \
         mv dist/cron/src dist/src ; \
     fi \
@@ -31,8 +37,5 @@ RUN npx tsc -p tsconfig.worker.json \
     && echo "=============================" \
     \
     && npm run update_db
-
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
 
 CMD ["/start.sh"]
