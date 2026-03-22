@@ -32,8 +32,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+# Node.js (FIXED: use LTS for compatibility)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get update \
     && apt-get install --no-install-recommends -y nodejs \
     && apt-get clean \
@@ -48,29 +48,29 @@ RUN git clone --depth 1 --branch "${AITK_REF}" "${AITK_REPO}" /app/ai-toolkit
 
 WORKDIR /app/ai-toolkit
 
-# Install PyTorch (CUDA 12.6 build as required by project)
+# PyTorch (CUDA build)
 RUN python -m pip install --no-cache-dir \
     torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 \
     --index-url https://download.pytorch.org/whl/cu126
 
-# Install Python dependencies
+# Python dependencies
 RUN python -m pip install --no-cache-dir --use-deprecated=legacy-resolver -r requirements.txt
 
 # Build UI
 WORKDIR /app/ai-toolkit/ui
-RUN npm install \
+RUN npm install --legacy-peer-deps \
     && npm run build \
     && npm run update_db
 
-# Return to root
+# Back to root
 WORKDIR /
 
 # Expose ports
 EXPOSE 22 8675
 
-# Copy start script (FIXED PATH)
+# Copy start script
 COPY templates/runpod/start.sh /start.sh
 RUN chmod +x /start.sh
 
-# IMPORTANT: Run the app (not bash)
+# Start app
 CMD ["/start.sh"]
