@@ -48,11 +48,17 @@ RUN python -m pip install --no-cache-dir torch==2.7.0 torchvision==0.22.0 torcha
     && python -m pip install --no-cache-dir -r requirements.txt
 
 WORKDIR /app/ai-toolkit/ui
+
 RUN npm install \
     && npm run build \
-    && npm run update_db
+    && npm run update_db \
+    && if [ -f dist/cron/cron/worker.js ]; then \
+         mkdir -p dist/cron && \
+         mv dist/cron/cron/worker.js dist/cron/worker.js ; \
+       fi
 
 WORKDIR /
+
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
