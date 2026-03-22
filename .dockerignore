@@ -1,4 +1,4 @@
 *
-!templates/
-!templates/runpod/
+!templates/runpod/start.sh
+!templates/runpod/Dockerfile
 !templates/runpod/**
