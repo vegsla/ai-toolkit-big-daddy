@@ -2,23 +2,30 @@ FROM node:22
 
 WORKDIR /app/ai-toolkit/ui
 
-# Copy UI dependencies from the correct location
+# =========================
+# Install dependencies
+# =========================
 COPY ui/package*.json ./
-
 RUN npm install
 
-# Copy the rest of the UI
+# =========================
+# Copy UI source
+# =========================
 COPY ui/ ./
 
-# Bring in start script (this is what broke before)
+# =========================
+# Copy start script
+# =========================
 COPY start.sh /start.sh
-
 RUN chmod +x /start.sh
 
-# Build
+# =========================
+# Build process
+# =========================
 RUN npx tsc -p tsconfig.worker.json \
     && npm run build \
     \
+    # ✅ Fix nested cron folder (if it exists)
     && if [ -f dist/cron/cron/worker.js ]; then \
         echo "Fixing nested cron folder..." && \
         mkdir -p dist/cron && \
@@ -26,8 +33,9 @@ RUN npx tsc -p tsconfig.worker.json \
         rm -rf dist/cron/cron ; \
     fi \
     \
+    # ✅ Fix src path structure (real bug you hit)
     && if [ -d dist/cron/src ]; then \
-        echo "Fixing src path..." && \
+        echo "Fixing src path for runtime imports..." && \
         mkdir -p dist && \
         mv dist/cron/src dist/src ; \
     fi \
@@ -38,4 +46,7 @@ RUN npx tsc -p tsconfig.worker.json \
     \
     && npm run update_db
 
+# =========================
+# Runtime
+# =========================
 CMD ["/start.sh"]
