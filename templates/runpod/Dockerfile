@@ -9,7 +9,6 @@ ENV PATH="/opt/venv/bin:${PATH}"
 ARG AITK_REPO=https://github.com/ArtDesignAwesome/ai-toolkit_BIG-DADDY-VERSION.git
 ARG AITK_REF=main
 
-# System dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
     git \
     curl \
@@ -32,51 +31,31 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Node.js (FIXED: use LTS for compatibility)
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get update \
     && apt-get install --no-install-recommends -y nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Python venv
 RUN python3 -m venv "${VENV_PATH}" \
     && python -m pip install --upgrade pip setuptools wheel
 
-# Clone repo
 RUN git clone --depth 1 --branch "${AITK_REF}" "${AITK_REPO}" /app/ai-toolkit
 
 WORKDIR /app/ai-toolkit
 
-# PyTorch (CUDA build)
-RUN python -m pip install --no-cache-dir \
-    torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 \
-    --index-url https://download.pytorch.org/whl/cu126
+RUN python -m pip install --no-cache-dir torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126 \
+    && python -m pip install --no-cache-dir -r requirements.txt
 
-# Python dependencies
-RUN python -m pip install --no-cache-dir --use-deprecated=legacy-resolver -r requirements.txt
-
-# Build UI
 WORKDIR /app/ai-toolkit/ui
-RUN npm install --legacy-peer-deps \
+RUN npm install \
     && npm run build \
     && npm run update_db
 
-# TEMP FIX: flatten worker path
-RUN if [ -f /app/ai-toolkit/ui/dist/cron/cron/worker.js ]; then \
-    mkdir -p /app/ai-toolkit/ui/dist/cron && \
-    cp /app/ai-toolkit/ui/dist/cron/cron/worker.js /app/ai-toolkit/ui/dist/cron/worker.js ; \
-fi
-
-# Back to root
 WORKDIR /
-
-# Expose ports
-EXPOSE 22 8675
-
-# Copy start script
-COPY templates/runpod/start.sh /start.sh
+COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
-# Start app
+EXPOSE 22 8675
+
 CMD ["/start.sh"]
