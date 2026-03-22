@@ -42,9 +42,14 @@ export_env_vars() {
 
 init_persistent_storage() {
   echo "Preparing persistent storage at ${DATA_ROOT}..."
+
   mkdir -p "${DATA_ROOT}/config" "${DATA_ROOT}/datasets" "${DATA_ROOT}/output"
   mkdir -p "${HF_CACHE_ROOT}"
   mkdir -p /root/.cache
+
+  # 🔥 FIX: ensure write permissions
+  chmod -R 777 "${DATA_ROOT}" || true
+
   ln -sfn "${HF_CACHE_ROOT}" /root/.cache/huggingface
 
   if [[ ! -d "${DATA_ROOT}/config/examples" && -d "${APP_DIR}/config/examples" ]]; then
@@ -57,6 +62,7 @@ init_persistent_storage() {
   fi
 
   rm -rf "${APP_DIR}/config" "${APP_DIR}/datasets" "${APP_DIR}/output"
+
   ln -sfn "${DATA_ROOT}/config" "${APP_DIR}/config"
   ln -sfn "${DATA_ROOT}/datasets" "${APP_DIR}/datasets"
   ln -sfn "${DATA_ROOT}/output" "${APP_DIR}/output"
@@ -85,7 +91,9 @@ maybe_update_repo() {
 start_ui() {
   cd "${APP_DIR}/ui"
   echo "Starting AI Toolkit UI on port 8675..."
-  exec npm run start
+
+  # 🔥 FIX: ensure it binds to RunPod correctly
+  exec npm run start -- --host 0.0.0.0 --port 8675
 }
 
 echo "Pod started."
