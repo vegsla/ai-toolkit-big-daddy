@@ -6,7 +6,7 @@ ENV PIP_NO_CACHE_DIR=1
 ENV VENV_PATH=/opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
-ARG AITK_REPO=https://github.com/ArtDesignAwesome/ai-toolkit_BIG-DADDY-VERSION.git
+ARG AITK_REPO=https://github.com/vegsla/ai-toolkit-big-daddy.git
 ARG AITK_REF=main
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -48,17 +48,11 @@ RUN python -m pip install --no-cache-dir torch==2.7.0 torchvision==0.22.0 torcha
     && python -m pip install --no-cache-dir -r requirements.txt
 
 WORKDIR /app/ai-toolkit/ui
-
 RUN npm install \
     && npm run build \
-    && npm run update_db \
-    && if [ -f dist/cron/cron/worker.js ]; then \
-         mkdir -p dist/cron && \
-         mv dist/cron/cron/worker.js dist/cron/worker.js ; \
-       fi
+    && npm run update_db
 
 WORKDIR /
-
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
