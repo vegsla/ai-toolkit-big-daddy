@@ -9,7 +9,7 @@ ENV PATH="/opt/venv/bin:${PATH}"
 ARG AITK_REPO=https://github.com/ArtDesignAwesome/ai-toolkit_BIG-DADDY-VERSION.git
 ARG AITK_REF=main
 
-# System deps
+# System dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
     git \
     curl \
@@ -48,12 +48,12 @@ RUN git clone --depth 1 --branch "${AITK_REF}" "${AITK_REPO}" /app/ai-toolkit
 
 WORKDIR /app/ai-toolkit
 
-# PyTorch (RunPod compatible)
+# Install PyTorch (CUDA 12.6 build as required by project)
 RUN python -m pip install --no-cache-dir \
     torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 \
     --index-url https://download.pytorch.org/whl/cu126
 
-# Install dependencies (fixed resolver issue)
+# Install Python dependencies
 RUN python -m pip install --no-cache-dir --use-deprecated=legacy-resolver -r requirements.txt
 
 # Build UI
@@ -62,14 +62,15 @@ RUN npm install \
     && npm run build \
     && npm run update_db
 
+# Return to root
 WORKDIR /
 
-# Expose RunPod port
+# Expose ports
 EXPOSE 22 8675
 
-# Copy and enable startup script (CRITICAL)
-COPY start.sh /start.sh
+# Copy start script (FIXED PATH)
+COPY templates/runpod/start.sh /start.sh
 RUN chmod +x /start.sh
 
-# ✅ THIS is the fix (start the app, not bash)
+# IMPORTANT: Run the app (not bash)
 CMD ["/start.sh"]
