@@ -24,7 +24,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./templates/runpod
+          context: .
           file: templates/runpod/Dockerfile
           push: true
           tags: vegsla/aitk-big-daddy-runpod:latest
